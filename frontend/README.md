@@ -36,6 +36,10 @@ Our hampers feature:
 
 We proudly partner with local artisans across India, bringing tradition and sustainability into every creation.
 
+## Current Status
+
+- The committed source code is missing the entire `src/lib` directory (API client, endpoint definitions, hooks, and environment config) that all pages import. Until those modules are restored, the frontend will not compile (`npm run dev`/`npm run build` will fail) even though the rest of the UI components and pages are present.
+
 ### Design Philosophy
 
 - **Premium • Minimal • Elegant • Conscious • Artisanal**
@@ -158,78 +162,17 @@ Premium, health-conscious, eco-aware customers and luxury gift buyers who value 
 ## Project Structure
 
 ```
-dolce-v4/
+frontend/
 ├── public/                 # Static assets and MSW service worker
 │   └── mockServiceWorker.js
 ├── src/
 │   ├── app/               # Application root and routing
-│   │   ├── App.tsx        # Main app component with providers
-│   │   └── router.tsx     # Route definitions
 │   ├── assets/            # Static assets (images, icons)
 │   ├── components/        # Reusable UI components
-│   │   ├── Badge.tsx      # Product tag badges
-│   │   ├── Button.tsx     # Button component variants
-│   │   ├── Card.tsx        # Card container component
-│   │   ├── Container.tsx  # Layout container
-│   │   ├── FilterSidebar.tsx  # Product filtering UI
-│   │   ├── MainLayout.tsx  # App layout (header, footer)
-│   │   ├── Modal.tsx       # Modal dialog component
-│   │   ├── ScrollToTop.tsx # Scroll-to-top on route change
-│   │   ├── SearchBar.tsx   # Search input component
-│   │   ├── SectionTitle.tsx # Section heading component
-│   │   ├── SkeletonLoader.tsx # Loading skeleton components
-│   │   ├── SortDropdown.tsx # Sorting dropdown
-│   │   ├── TextTestimonialCard.tsx # Text testimonial card component
-│   │   └── VideoTestimonialCard.tsx # Video testimonial card component
-│   ├── features/          # Feature-based modules
-│   │   ├── auth/          # Authentication pages
-│   │   │   ├── LoginPage.tsx
-│   │   │   └── SignupPage.tsx
-│   │   ├── cart/          # Shopping cart
-│   │   │   └── CartPage.tsx
-│   │   ├── checkout/      # Checkout flow
-│   │   │   ├── CheckoutPage.tsx
-│   │   │   ├── OrderConfirmationPage.tsx
-│   │   │   └── PaymentSection.tsx
-│   │   ├── home/          # Home page
-│   │   │   └── HomePage.tsx
-│   │   ├── orders/        # Order management
-│   │   │   └── OrdersPage.tsx
-│   │   ├── products/      # Product pages
-│   │   │   ├── ProductDetailPage.tsx
-│   │   │   └── ProductsPage.tsx
-│   │   └── profile/       # User profile
-│   │       └── ProfilePage.tsx
-│   ├── lib/               # Core libraries and utilities
-│   │   ├── api/           # API client and endpoints
-│   │   │   ├── client.ts  # Base API client
-│   │   │   └── endpoints/ # API endpoint definitions
-│   │   │       ├── auth.ts
-│   │   │       ├── cart.ts
-│   │   │       ├── catalog.ts
-│   │   │       ├── content.ts
-│   │   │       ├── orders.ts
-│   │   │       └── payments.ts
-│   │   ├── config/        # Configuration files
-│   │   │   └── env.ts     # Environment variables
-│   │   └── hooks/         # Custom React hooks
-│   │       ├── useAuth.ts
-│   │       ├── useCart.ts
-│   │       ├── useOrders.ts
-│   │       ├── useProducts.ts
-│   │       ├── useSustainableGifting.ts
-│   │       └── useTestimonials.ts
-│   ├── mocks/             # Mock data and API handlers
-│   │   ├── browser.ts     # MSW browser setup
-│   │   ├── handlers.ts    # API request handlers
-│   │   └── data/          # Mock data
-│   │       ├── cart.ts
-│   │       ├── orders.ts
-│   │       └── products.ts
+│   ├── features/          # Feature-based modules (auth, cart, checkout, products, etc.)
+│   ├── mocks/             # MSW setup and mock data
 │   ├── styles/            # Global styles
-│   ├── index.css          # Main stylesheet
 │   └── main.tsx           # Application entry point
-├── .gitignore
 ├── eslint.config.js       # ESLint configuration
 ├── index.html             # HTML template
 ├── package.json           # Dependencies and scripts
@@ -241,12 +184,14 @@ dolce-v4/
 └── vite.config.ts         # Vite configuration
 ```
 
+> Note: The codebase references a `src/lib` folder (API client/endpoints/hooks), but those files are not present in the repository. Restore them to satisfy imports before running or building the app.
+
 ### Architecture Principles
 
 - **Feature-Based Organization** — Code is organized by features (products, cart, orders) rather than by file type
 - **Separation of Concerns** — Clear separation between UI components, business logic, and data fetching
 - **Reusable Components** — Shared components in `components/` directory
-- **API Abstraction** — All API calls go through centralized client and endpoint files
+- **API Abstraction** — Intended centralized client and endpoint files in `src/lib` (currently missing from the repo)
 - **Type Safety** — Full TypeScript coverage with strict typing
 - **Mock-First Development** — MSW enables frontend development without backend dependency
 
@@ -263,7 +208,7 @@ dolce-v4/
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd dolce-v4
+   cd dolce-fiore/frontend
    ```
 
 2. **Install dependencies**

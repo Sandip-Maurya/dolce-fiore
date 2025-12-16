@@ -40,6 +40,11 @@ Our hampers feature:
 
 We proudly partner with local artisans across India, bringing tradition and sustainability into every creation.
 
+## Current Status
+
+- The Django backend is present with REST endpoints, management commands, and Docker setup.
+- The React frontend is missing its entire `src/lib` folder (API client, endpoint definitions, hooks, and environment config). Multiple files import from this folder, so `npm run dev` or Docker builds will currently fail until the missing modules are restored.
+
 ## Features
 
 ### ✅ Implemented Features
@@ -112,7 +117,7 @@ dolce-fiore/
 │   │   ├── app/          # App root and routing
 │   │   ├── components/  # Reusable UI components
 │   │   ├── features/    # Feature-based modules
-│   │   ├── lib/         # Core libraries and utilities
+│   │   ├── lib/         # (Expected) API utilities and hooks — missing in current repo
 │   │   └── mocks/       # Mock data and API handlers
 │   ├── package.json
 │   ├── Dockerfile
