@@ -1,0 +1,129 @@
+services:
+  # PostgreSQL Database Service
+  db:
+    image: postgres:16-alpine
+    container_name: dolce-fiore-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dolce_fiore}
+      POSTGRES_USER: ${POSTGRES_USER:-dolce_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dolce_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dolce_user} -d ${POSTGRES_DB:-dolce_fiore}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dolce-fiore-network
+
+  # Django Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dolce-fiore-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Django Settings
+      DJANGO_ENV: ${DJANGO_ENV:-development}
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      DEBUG: ${DEBUG:-True}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,backend,nginx}
+      
+      # Database Configuration
+      DB_NAME: ${POSTGRES_DB:-dolce_fiore}
+      DB_USER: ${POSTGRES_USER:-dolce_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-dolce_password}
+      DB_HOST: db
+      DB_PORT: 5432
+      
+      # CORS Configuration
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173,http://frontend:5173,http://localhost,http://127.0.0.1,http://nginx}
+    volumes:
+      # Mount source code for development (hot reload)
+      - ./backend:/app
+      # Persist media files
+      - backend_media:/app/media
+      # Persist static files
+      - backend_static:/app/staticfiles
+    # Port mapping removed - access through nginx instead
+    # ports:
+    #   - "${BACKEND_PORT:-8000}:8000"
+    networks:
+      - dolce-fiore-network
+    restart: unless-stopped
+
+  # React Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: ${FRONTEND_TARGET:-development}
+      # Don't set VITE_API_BASE_URL in build args for dev - let it use relative path /api
+      # The Vite proxy will handle forwarding to backend service
+    container_name: dolce-fiore-frontend
+    depends_on:
+      - backend
+    environment:
+      # Don't set VITE_API_BASE_URL - let frontend use relative /api path
+      # The Vite proxy (configured in vite.config.ts) will forward to http://backend:8000
+      # Explicitly unset VITE_API_BASE_URL to ensure relative path is used
+      VITE_API_BASE_URL: ""
+      VITE_USE_MOCK_API: ${VITE_USE_MOCK_API:-false}
+      DOCKER_ENV: "true"
+      NODE_ENV: ${NODE_ENV:-development}
+    volumes:
+      # Mount source code for development (hot reload)
+      - ./frontend:/app
+      - /app/node_modules
+    # Port mapping removed - access through nginx instead
+    # ports:
+    #   - "${FRONTEND_PORT:-5173}:5173"
+    networks:
+      - dolce-fiore-network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy Service
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: dolce-fiore-nginx
+    depends_on:
+      - backend
+      - frontend
+    environment:
+      NGINX_ENV: ${NGINX_ENV:-development}
+    ports:
+      - "${NGINX_PORT:-80}:80"
+    volumes:
+      # Mount frontend static files for production mode
+      # In development, this volume is empty and nginx proxies to frontend:5173
+      # In production, build frontend static files first using:
+      #   - Linux/Mac: ./build-frontend.sh
+      #   - Windows: .\build-frontend.ps1
+      # Then start docker-compose with NGINX_ENV=production
+      - frontend_static:/usr/share/nginx/html:ro
+    networks:
+      - dolce-fiore-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  backend_media:
+    driver: local
+  backend_static:
+    driver: local
+  frontend_static:
+    driver: local
+
+networks:
+  dolce-fiore-network:
+    driver: bridge
+
